@@ -42,6 +42,21 @@ Containers are *not* smaller VMs.
 
 ## Container runtimes
 
+Create, manage, and delete containers
+
+```bash
+docker run --rm bash -c 'echo "hello, world!"'
+# hello, world!
+```
+
+|Can: | Cannot: |
+|----|--------|
+| - Create namespaces | - Build images |
+| - Create and associate cgroups | - Pull images |
+| - Map filesystems to containers | - Sever APIs for interacting with containers |
+| - Set container capabilities | |
+| - Start, stop, and remove individual containers | |
+
 ## OCI and CRI runtimes
 
 ## The Docker Engine
