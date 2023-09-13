@@ -59,7 +59,72 @@ docker run --rm bash -c 'echo "hello, world!"'
 
 ## OCI and CRI runtimes
 
+### types of container runtimes
+
+#### OCI
+
+* Open Container Initiative (OCI)
+
+  * aims to standardize container technology,
+    like container images and runtimes
+
+  * The OCI Runtime Specification outlines what
+    a container is and how they should be managed
+
+  * **runtime-spec** does **not** dictate **how**
+    to do these things
+
+  * Runtime Spec is open source and actively maintained
+
+  * **runc** from Docker is the de facto industry standard container runtime
+
+  * **crun** is the Red Hat defalult container runtime
+    and is written in C for performance
+
+  * **youki** is a newer container runtime,
+    written in Rust
+
+* Sandboxed OCI Runtimes
+
+  * **gVisor** and **Nabla Containers** use unikernels
+    to restrict what container can and cannot do
+
+  * **Kata Containers** is a runtime for
+    creating containers inside of virtual machines
+
+#### CRI
+
+* Container Runtime Interface(CRI)
+
+  * CRI provides an API for running containers
+    on container runtimes
+
+  * This allows project like Kubernetes to not be
+    tied to any specific runtime or runtime standard
+
+  * **containerd** is a popular CRI runtime that
+    uses **runc** to create OCI containers
+
+  * **CRI-O** is a lightweight CRI runtime optimized
+    for Kubernetes, maintained by Red Hat, Intel, and others
+
 ## The Docker Engine
+
+Container engines work alongside container run times to provide components and tools for managing containers
+
+* Docker Engine
+  * Most popular container engine
+  * Comes with **docker** command-line tool
+  * Also comes with a REST-based API for managing containers
+    and a DSL for creating container images called **Dockerfile**
+  * Uses **containerd** as its runtime by default
+* Podman
+  * The Red Hat container engine
+  * Functionally equivalent to Docker Engine
+  * Also comes with a REST-based API for managing
+    containers and a DSL for creating container images called
+    **Buildah**
+  * Uses **crun** as its runtime by default
 
 ## Where are Docker's configuration files?
 
