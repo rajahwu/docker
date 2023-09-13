@@ -128,4 +128,11 @@ Container engines work alongside container run times to provide components and t
 
 ## Where are Docker's configuration files?
 
+* **/var/lib/docker:** containers, volumes, and metadata
+* **/var/lib/docker/overlay:** container volumes
+* **/bar/run/docker.sock:** the pipe between the Docker client
+    and Docker Engine
+* **/etc/docker/daemon.json:** Docker Engine configuration
+    (might not exist at first)
+
 ## Chapter Quiz
