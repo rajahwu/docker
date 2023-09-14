@@ -90,4 +90,11 @@ Use **COPY** instead of ADD wherever possible!
 |Wildcard|Description|Input|Command|Matches|
 |--------|-----------|-----|-------|-------|
 |?|Copies a file **src-file** into the container in directory **$dest-dir**|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|COPY songs/song-?.mp3 /songs| song/song-1.mp3 song/song-2.mp3 song/song-3.mp3|
-|*|Matches all characters after **word**(until next non-asterisk(character))|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|COPY songs/song* /songs|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|
+|*|Matches all characters after **word**(until next non-asterisk(character)|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|COPY songs/song* /songs|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|
+
+### Two Userful **COPY** Arguments
+
+|Form|Description|
+|----|-----------|
+|--chown $user:$group|Assigns **$user** in group **$group** as owner of the file or directory **in the container image**|
+|--link|Copies files or directory from context into a blank layer|

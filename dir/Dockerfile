@@ -1,2 +1,2 @@
-# This image is awesome!
+# Docker is great!
 FROM ubuntu
