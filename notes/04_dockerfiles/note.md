@@ -39,7 +39,7 @@ FROM ubuntu
 
 **docker image** and **docker run** commands
 
-## Soring other Docker images with FROM
+## Soring other Docker images with **FROM**
 
 **FROM** must be the first command in the Dockerfile!*
 
@@ -68,3 +68,26 @@ The **FROM scratch** command creates your own base image,
 |FROM $image:$tag |Selects the **$tag** tag of **$image**|FROM ubuntu:kinetic|
 |FROM $image AS $name |Selects the "latest" tag of **$image** and gives it an alias **$name** (multi-stage builds only)|FROM ubuntu AS base|
 |FROM $image:$tag AS $name |Selects the **$tag** tag of **$image** and gives it an alias **$name** (multi-stage builds only)|FROM ubuntu:kinetic AS base|
+
+## Adding and copying files with **COPY** and **ADD**
+
+COPY add files into Docker images from a provided context.
+
+ADD is the same as COPY but also works with URLs to TAR files.
+
+Use **COPY** instead of ADD wherever possible!
+
+### Three Ways to Use **COPY**
+
+|Form|Description|Example|
+|----|-----------|-------|
+|COPY $src-file $dest-file|Copies a file **$src-file** into the container as file **$dest-dir**| COPY ./my-file.txt /app/my-file.txt|
+|COPY $src-file $dest-dir|Copies a file **$src-file** into the container as directory **$dest-dir**| COPY ./my-file.txt /app/|
+|COPY $src-dir $dest-dir|Copies a directory **$src-dir** into the container as directory **$dest-dir**| COPY ./my-dir /app/|
+
+### **COPY** Wildcards
+
+|Wildcard|Description|Input|Command|Matches|
+|--------|-----------|-----|-------|-------|
+|?|Copies a file **src-file** into the container in directory **$dest-dir**|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|COPY songs/song-?.mp3 /songs| song/song-1.mp3 song/song-2.mp3 song/song-3.mp3|
+|*|Matches all characters after **word**(until next non-asterisk(character))|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|COPY songs/song* /songs|songs/song-1.mp3 songs/song-2.mp3 songs/song-3.mp3 songs/song1.mp3 songs/song2.mp3 songs/song3.mp3|
