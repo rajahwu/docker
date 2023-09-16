@@ -1,0 +1,322 @@
+# Quiz
+
+##
+In Linux container, the [blank] form provides every word after **RUN** as an argument to [blank]. [blank] form executes the first word after **RUN** as a program, with everything else provided to it as arguments
+
+[
+exec, /bin/sh -c, shell
+
+*shell, /bin/sh -c, exec
+
+shell, cmd /S /C, exec
+
+exec, cmd /S /C, shell
+]
+
+##
+You are debugging a broken Dockerfile provided to you by a colleague that looks like the below:
+
+
+
+
+
+FROM nginx
+ARG ENVIRONMENT
+RUN /scripts/01-prepare-nginx.sh --environment $ENVIRONMENT
+
+
+
+
+
+When you attempt to build an image from it with docker build, it fails, with its last error looking something like this: "/scripts: no such file or directory." Which of these options provides the most likely root cause and solution for this error?
+
+[
+ARG commands must come before FROM.
+
+The nginx image does not have a /scripts directory in it. Add COPY . /scripts anywhere in the Dockerfile.
+
+The RUN command must be in exec form instead of shell form.
+
+*The nginx image does not have a /scripts directory in it. Add COPY . /scripts before the RUN command.
+]
+
+##
+Which of these commands can you use to list available container images?
+
+[
+docker image build
+
+docker load
+
+docker run
+
+*docker image ls  
+]
+
+##
+Which of these commands can you use to build a Docker image from a Dockerfile?
+
+[
+*docker image build
+
+docker run
+
+docker image ls
+
+docker save
+]
+
+##
+Which of these FROM statements will allow your image to be created from an image configured specifically with Postgres version 15, the latest version?
+
+[
+FROM postgres
+
+FROM postgres-15
+
+*FROM postgres:15
+
+FROM postgres:latest
+]
+
+##
+You have created a web-based calculator application in Golang. The application is self-contained and does not require a Linux root filesystem to operate. You want to package this application as a Docker image and wish to make the image as small as possible. Which of these FROM statements help you achieve this?
+
+[
+FROM ubuntu:tiny
+
+*FROM scratch
+
+FROM none
+
+FROM alpine   
+]
+
+##
+Why must the FROM Dockerfile command be the first command in a Dockerfile?
+
+[
+because of limitations within the Dockerfile parser in containerd
+
+because FROM completes more quickly than other commands
+
+*because they define the base image from which your new image will be created   
+]
+
+##
+Each command in a Dockerfile is [blank]. The result of each command is [blank].
+
+[
+*executed in an intermediate container; an image layer
+
+an image layer; executed in a permanent container
+
+an image layer; executed in an intermediate container
+
+executed in a permanent container; an image layer   
+]
+
+##
+You are viewing a Dockerfile for an image on the Docker Hub to verify that it is safe to pull and see this line inside of it:
+
+RUN chmod -R 0600 /app
+
+How will Docker process this Dockerfile instruction?
+
+[
+Because there is a slash in the command, Docker will interpret this as a syntax error and fail the build.
+
+Each word will be interpreted as individual Dockerfile commands.
+
+*chmod -R 0600 /app will be provided as arguments to RUN.
+
+Docker will interpret this as a comment.    
+]
+
+##
+You are responsible for packaging your team's application into a Docker image. The application widget is built with a script called ./scripts/build.sh. This image will be used by hundreds of thousands of people across the Internet, and it will mostly be used within Docker. Because the app is self-contained and does not rely on system libraries, you want to ensure that the image includes nothing but your application. This avoids image scanners that can prevent your app from being used in more highly-regulated companies. Finally, you want to ensure that the app runs within the context of the nobody user. Which of these example Dockerfiles best meets this requirement?
+
+[
+FROM alpine
+COPY . /app
+WORKDIR /app
+RUN ./scripts/build.sh
+USER 1001
+ENTRYPOINT [ "/widget" ]
+
+FROM scratch
+COPY . /app
+WORKDIR /app
+RUN ./scripts/build.sh
+
+FROM scratch
+COPY --from=0 /app/widget /
+USER nobody
+ENTRYPOINT [ "/widget" ]
+
+FROM ubuntu
+COPY . /app
+WORKDIR /app
+RUN ./scripts/build.sh
+RUN ./scripts/strip-ubuntu.sh
+RUN adduser nobody
+USER nobody
+ENTRYPOINT [ "/widget" ]
+
+FROM ubuntu
+COPY . /app
+WORKDIR /app
+RUN ./scripts/build.sh
+
+*FROM scratch
+COPY --from=0 /app/widget /
+USER nobody
+ENTRYPOINT [ "/widget" ]   
+]
+
+##
+What problem do Dockerfiles aim to solve?
+
+[
+*Automate the process of creating and describing container images.
+
+Retrieve images from container registries.
+
+Install Docker onto machines.
+
+Decompress layers and join them to form container images.    
+]
+
+##
+You are writing a Dockerfile that has multiple stages. You would like to copy /etc/nginx/nginx.conf from the nginx:latest image. Which of these commands accomplishes this most efficiently?
+
+[
+docker container create --name temp nginx && docker cp temp:/etc/nginx/nginx.conf . && docker build
+
+This is not possible with multi-stage builds.
+
+COPY nginx:latest:/etc/nginx/nginx.conf
+
+*COPY --from=nginx:latest /etc/nginx/nginx.conf   
+]
+
+##
+Which of these statements is not an advantage provided by multi-stage builds?
+
+[
+It makes it easier to strip an image of everything except what an app needs to run.
+
+It makes creating small, highly secure container images easier.
+
+It can speed up image builds considerably.
+
+*It makes it possible to write Dockerfiles as bash scripts.    
+]
+
+##
+You want to provide an email address in your Dockerfile that users needing assistance can contact you with. Which of these options provides the most correct command to satisfy this requirement?
+
+[
+COMMENT "Contact me at example@email.address"
+
+MAINTAINER "Your Name <example@email.address>"
+
+*LABEL maintainer="Your Name <example@email.address>"
+
+# Contact me at example@email.address
+]
+
+##
+You are inspecting a Dockerfile for an image you would like to use for your application and come across the snippet shown below:
+
+
+FROM ubuntu:kinetic
+COPY ./certs /usr/local/share/ca-certificates
+USER root
+RUN update-ca-certificates
+USER nobody
+RUN mkdir /app
+COPY ./app/*.py /app
+WORKDIR /app
+ENTRYPOINT [ "./server.py", "--port", "8080", "--ssl-root-certs", "/usr/local/share/ca-certificates" ]
+CMD [ "--development" ]
+
+EXPOSE 8080
+
+
+
+Which of these statements is false about this Dockerfile snippet?
+
+[
+*Port 8080 will not be automatically bound to the container. You must use docker run to properly expose the port.
+
+You must prepend update-ca-certificates with sudo, as it will not run as root by default.
+
+server.py will run as root by default because the root's user ID is higher than the nobody user.
+
+Containers will run with the --development flag provided by default. Users will not be able to override this behavior.
+]
+
+##
+You are creating a Docker image that provisions a customized installation of MariaDB. You want to ensure that containers created from this image start as the database Linux user. The database user does not exist in the mariadb base image. The command below will automatically create this user. It must be run as root. Given this, which Dockerfile snippet will allow you to satisfy this requirement?
+
+[
+USER database RUN useradd --no-home database
+
+USER root RUN useradd --no-home database
+
+*USER root RUN useradd --no-home database USER database
+
+USER root RUN useradd --no-home database RUN change_user database
+]
+
+##
+You are developing a Python application meant to be distributed as a Docker image. A snippet of the application's source code is provided below:
+
+
+    if __name__ == __main__:
+        if "--production" in sys.argv:
+          print "Running in production"
+        else:
+          print "Not running in production"
+
+
+
+Upon running your application as follows: docker run --rm your-image --production. Your application prints "Not running in production" instead of "Running in production", as expected. Which of these options provides the most likely root cause for this behavior?
+
+[
+*Your ENTRYPOINT is in shell form, and arguments are being passed into sh -c instead of your application.
+
+Your Dockerfile only contains a CMD and is missing an ENTRYPOINT.
+
+Your Dockerfile has both CMD and ENTRYPOINT commands in it. All arguments provided to docker run are discarded in this configuration.
+
+The ENTRYPOINT in your Dockerfile has some other option; arguments in ENTRYPOINT override arguments provided to docker run.    
+]
+
+##
+You are running a Node web application in Docker. However, you cannot stop the container upon hitting CTRL-C on your keyboard. The application does not perform signal-based error handling. Which of these options provides the most likely cause of this behavior?
+
+[
+The ENTRYPOINT is written in exec form, but the application discards the signal emitted by CTRL-C.
+
+*The ENTRYPOINT in the application's Docker image is written in shell form, and the signal sent by CTRL-C is silently discarded.
+
+You started the container in interactive mode, which causes signals to get discarded.
+
+You allocated a pseudo-TTY to the container, which causes signals to get discarded.    
+]
+
+##
+[blank] defines the default program that containers will run when started from your image. In most cases, [blank] provides default arguments to [blank].
+
+[
+ENTRYPOINT, CMD, ARG
+
+*ENTRYPOINT, CMD, ENTRYPOINT
+
+
+CMD, ENTRYPOINT, ARG
+
+CMD, ENTRYPOINT, CMD   
+]
