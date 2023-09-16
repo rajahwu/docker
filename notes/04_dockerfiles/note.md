@@ -15,7 +15,9 @@
   * More external dependencies to manage;
     also complex and error-prone
 
-* **Dockerfiles:** The Dockerfile is a language for
+#### **The Dockerfile**
+
+ **Dockerfiles:** The Dockerfile is a language for
     easily building container images.
 
 ## The anatomy of a Dockerfile
@@ -39,7 +41,7 @@ FROM ubuntu
 
 **docker image** and **docker run** commands
 
-## Soring other Docker images with **FROM**
+## Sourcing other Docker images with **FROM**
 
 **FROM** must be the first command in the Dockerfile!*
 
@@ -98,3 +100,66 @@ Use **COPY** instead of ADD wherever possible!
 |----|-----------|
 |--chown $user:$group|Assigns **$user** in group **$group** as owner of the file or directory **in the container image**|
 |--link|Copies files or directory from context into a blank layer|
+
+## Customizing your Docker image with **RUN**
+
+RUN executes commands within temporary container.
+
+### Two Ways to Use **RUN**
+
+|Form|Description|Example|
+|----|-----------|-------|
+|RUN command-in-shell-form|**Shell form**: sends everything after **RUN** to /bin/sh or the image's **ENTRYPOINT**| RUN echo "Hello, world!"|
+|RUN [ "command", "in", "exec", "form ]|**Exec form**: first word after **RUN** is the programe to be executed. All other words are provided as arguments to the program|RUN ["echo","Hello, world!"]
+
+## Starting your app with **ENTRYPOINT**
+
+The **ENTRYPOINT** Command
+
+ENTRYPOINT configures containers to run stuff
+
+### Two Ways to Use **ENTRYPOINT**
+
+|Form|Description|Example|
+|----|-----------|-------|
+|ENTRYPOINT command-in-shell-form|**Shell form:** sends everything after **ENDPOINT** to /bin/sh **/bin/sh $command is PID 1.**|ENTRYPOINT echo "Hello, world!"|
+|ENTRYPOINT [ "command", "in", "exec", "form" ]|**Exec form:** first word after **ENTRYPOINT** is the program to be executed. All other words are provied as arguments to the program. **Your program is PID 1.**|
+
+#### **Shell Form**
+
+* App runs as a child of **/bin/sh** or **cmd**
+* Any signals sent to the app are caught by the shell, not the program
+* **Any code in your app that relies on signals will not run!**
+* **Arguments sent to containers will get passed into the shell, not your program!**
+
+```dockerfile
+# shell form
+FROM ubuntu
+COPY ./app
+RUN apt -y update && apt -y install curl
+ENTRYPOINT "SOME VAR=$SOME VALUE_FROM_DOCKER; [ "$SOME_VAR" == "foo" ] && \/app/app.sh --foo || /app/app.sh --bar"
+```
+
+#### **entrypoint script pattern**
+
+```dockerfile
+# entrypoint script
+FROM ubuntu
+COPY ./app
+RUN apt -y update && apt -y install curl
+ENTRYPOINT [ "/app/entrypoint.sh]
+
+```
+
+```bash
+# /app/entrypoint.sh
+# !#/usr/bin/env bash
+SOME VAR=$SOME VALUE_FROM_DOCKER;
+[ "$SOME_VAR" == "foo" ] && /app/app.sh --foo || /app/app.sh --bar
+```
+
+#### **Exec Form**
+
+* App runs as the top-level process within the container (as PID 1)
+* **Any signals sent to the app are sent to your program**
+* **Arguments sent to containers will get passed into your program**

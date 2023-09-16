@@ -2,6 +2,19 @@
 
 ## Docker recap
 
+```bash
+# Docker debug log
+sudo tail -f /var/log/docker.log
+```
+
+```json
+// /etc/docker/daemon.json
+{
+    "debug": true,
+    "log-driver": "local"
+}
+```
+
 ### problem
 
 * different system configuration
@@ -35,7 +48,7 @@ Docker user **control groups**, **namespaces**, and **images**
 Containers are *not* smaller VMs.
 |Containers | Virtual Machines |
 |-----------|------------------|
-| - Run in container runtimes | - Run on top of ypervisors |
+| - Run in container runtimes | - Run on top of hypervisors |
 | - Work alongside operating systems | - Need hardware emulation |
 | - Do not requrie OS configuration | - Can run many apps at once |
 | -Run one app at a time (usually) | - Can run many apps at once |  
