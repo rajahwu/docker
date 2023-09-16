@@ -1,0 +1,2 @@
+# This is a testing image
+FROM ubuntu COPY . /app RUN apt -y update && apt -y install curl CMD [ "/app/app.sh" ]

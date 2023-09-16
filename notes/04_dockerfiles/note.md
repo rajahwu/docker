@@ -303,3 +303,180 @@ CMD [ "--argument" ]
 ENTRYPOINT ["/app/app.sh"]
 EXPOSE 8080
 ```
+
+## Multi-stage Builds
+
+The app in our example is pretty big
+
+```bash
+docker images my-image
+# REPOSITORY  TAG     IMAGE ID        CREATED         SIZE
+# my-image    latest  9b7c1ff6559d    2 minutes ago   113MB
+```
+
+```bash
+./size_diff.sh
+# App size, in bytes: 876
+# App image size, in bytes: 118489088
+# Size difference: 135261x
+```
+
+We could create two Dockerfiles and use the **builder pattern** to
+    make our image slimmer and faster ...
+
+    ```bash
+    docker create --name get-date-text my-image && 
+    docker cp get-dat-text:/app/include/date.txt . &&
+    docker build -t my-smaller-image -f smaller.Dockerfile .
+    ```
+
+### **Bulider pattern** Disadvantages
+
+* Increases complexity by producing more Dockerfiles
+    than needed
+* Increases fragiliy by having more commands than needed
+* Leaves several unused artifacts behind (**get-date-txt** container and old app image)
+
+Multi-stage builds use intermediate images to produce smaller final images.
+
+```dockerfile
+FROM ubuntu
+ENV curl_bin="curl"
+RUN apt -y update && apt -y install "$curl_bin"
+RUN curl -i -sS google.com | \
+    grep -E '^Date:' | \
+    sed 's/^Date: //' | tr -d $'\r' > '/tmp/date.txt'
+
+FROM bash:alpine3.16
+COPY . /app
+COPY --from=0 /tmp/date.txt /app/include/data.txt
+ENTRYPOINT [ "/app/app.sh" ]
+CMD [ "--argument" ]
+```
+
+### **Multiple Base Images**
+
+Multi-stage builds can use multipe base images
+This produces significanty smaller final images
+    and accelerates build time through
+    imporved caching
+
+```dockerfile
+FROM ubuntu
+# ...
+FROM bash:alpine3.16
+```
+
+### **Stages**
+
+Each group of commands under a base image
+    is called a **stage**
+
+#### Stage 0
+
+```dockerfile
+FROM ubuntu
+ENV curl_bin="curl"
+RUN apt -y update && apt -y install "$curl_bin"
+RUN curl -i -sS google.com | \
+    grep -E '^Date:' | \
+    sed 's/^Date: //' | tr -d $'\r' > '/tmp/date.txt'
+```
+
+#### Stage 1 (Your Final Image)
+
+```dockerfile
+FROM bash:alpine3.16
+COPY . /app
+COPY --from=0 /tmp/date.txt /app/include/data.txt
+ENTRYPOINT [ "/app/app.sh" ]
+CMD [ "--argument" ]
+```
+
+### **COPY --from**
+
+You can copy files or directories from one temporary image
+    to anoter with the **--from** COPY flag
+
+```dockerfile
+# ...
+COPY --from=0 /tmp/date.txt /app/include/data.txt
+# ...
+```
+
+### **Aliases**
+
+You can also name your stages, which makes referencing 
+    them in later COPY operations easier
+
+```dockerfile
+FROM ubuntu AS base
+# ...
+FROM bash:alpine3.16 AS app
+# ...
+COPY --from=base /tmp/date.txt /app/include/data.txt
+# ...
+```
+
+### **Other Features**
+
+You can also reference external images in **COPY --from** commands
+    and reuse stages as many times as you'd like.
+
+```dockerfile
+FROM ubuntu AS base
+# ...
+...
+FROM base AS second
+RUN echo 'Re-using base a second time!'
+
+FROM base AS third
+RUN echo 'Re-using base a third time!'
+
+COPY --from=some-other-image /header.txt /app/include/header.txt
+```
+
+### Multi-stage Build Advantages
+
+* Produces significantly smaller final images
+* Can be much faster than builder pattern while
+    being less fragile
+* Can produce extremely secure images by discarding
+    unnecessary dependencies
+
+```dockerfile
+# tiny.Dockerfile
+# This image is awesome!
+FROM ubuntu AS base
+ENV curl_bin="curl"
+RUN apt -y update && apt -y install "$curl_bin"
+RUN curl -i -sS google.com | \
+  grep -E '^Date:' | \
+  sed 's/^Date: //' | tr -d $'\r' > '/tmp/date.txt'
+RUN curl -Lo /tmp/bash \
+  'https://github.com/robxu9/bash-static/releases/download/5.1.016-1.2.3/bash-linux-aarch64' && \
+  chmod +x /tmp/bash
+
+FROM busybox:uclibc
+COPY . /app
+COPY --from=base /tmp/date.txt /app/include/date.txt
+COPY --from=base /tmp/bash /usr/local/bin/bash
+ENTRYPOINT [ "/usr/local/bin/bash", "/app/app.sh" ]
+CMD [ "--argument" ]
+```
+
+```bash
+# base.Dockerfile
+./size_diff.sh
+# App size, in bytes: 876
+# App image size, in bytes: 118489088
+# Size difference: 135261x
+```
+
+```bash
+# tiny.Dockerfile
+./size_diff.sh
+# App size, in bytes: 876
+# App image size, in bytes: 13212058
+# Size difference: 15081x
+```
