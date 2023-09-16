@@ -235,3 +235,71 @@ Both **ENV** and **ARG** can only be expanded within **RUN** commmands
 
 ## Other helpful Dockerfile commands
 
+[dockerfile reference](https://docs.docker.com/engine/reference/builder/)
+
+[buildkit](https://docs.docker.com/build/buildkit/)
+
+### **LABEL**
+
+* Adds documentation for your image
+* Accepts a key-value par
+
+```dockerfile
+LABEL maintainer="Rajah Wu <dev@rajahwu.me>"
+LABEL foo=bar
+LABEL baz=quux
+```
+
+### **WORKDIR**
+
+* Set a working directory for **RUN** commands
+    and/or containers
+* Can use **WORKDIR** multiple times to change the
+    working directory while building
+
+```dockerfile
+WORKDIR /
+RUN pwd
+WORKDIR /app
+ENTRYPOINT [ "./app.sh" ]
+```
+
+### **USER**
+
+* Set the **Linux or Windows** user to be used
+    for **RUN** commands and/or containers
+* Linux users can be numerical as well
+* Can use **USER** multiple times to change the
+    working directory while building
+* The **last** USER will be used by containers
+* Useful for preventing containers from running as
+    root by default
+* Can be overriden with **docker run --user**
+* Can create users within the Dockerfile for
+    containers to run as later!
+
+```dockerfile
+USER root
+RUN apt -y update && apt -y install "$curl_bin"
+RUN useradd -p supersecret newuser
+CMD [ "--argument" ]
+USER newuser
+ENTRYPOINT [ "/app/app.sh" ]
+```
+
+### **EXPOSE**
+
+* Documents ports that containers created from image
+    should expose
+* **Does not automatically expose ports**
+* Useful for documentation; completely optional
+
+```dockerfile
+FROM ubuntu
+COPY ./app
+ENV curl_bin=curl
+RUN apt -y update && apt -y install "$curl_bin"
+CMD [ "--argument" ]
+ENTRYPOINT ["/app/app.sh"]
+EXPOSE 8080
+```
