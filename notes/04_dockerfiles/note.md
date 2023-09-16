@@ -617,3 +617,89 @@ We also got some arguments: --agrument
 
 ⚙️  1 arguments were provided to this application.
 ```
+
+## Multi-app images
+
+### Reasons for Multi-app Images
+
+* Running apps with multiple components that
+    need to coexist
+* Emulating a virtual machine (for testing)
+* Emulating a cluster without spinning up multiple
+    container (like Kubernetes in Docker)
+
+### You Usually Don't Want to Do This
+
+* Complicates recovery during downtime
+* Reduces scalability and discoverability though
+    tightly coupled dependencies
+* Increases container startup time
+
+### Alternatives to Multi-app Images
+
+* Multiple containers on a single network
+* Using Docker Compose
+* Using an orchestrator, like Docker Swarm
+    or Kubernetes
+
+## Multi-app Strategies
+
+### Use an entrypoint script that executes other programs in the background, then run with **docker run --init**
+
+```bash
+#!/bin/bash
+
+# Start the first process
+./my_first_process &
+
+#  Start the second process
+./my_second_process &
+
+#  Wait for any process to exit
+wait -n
+
+# Exit with status of process that exited first
+exit $?
+```
+
+### Install and configure **systemd** in the image ... if you have to
+
+### Use a more sophisticated process supervisor, like **[s6-overlay](https://github.com/just-containers/s6-overlay)**
+
+[demo](https://github.com/madewithlove/php-s6-overlay-demo/blob/master/Dockerfile)
+
+```dockerfile
+FROM php:7.3-fpm
+
+RUN apt update \
+    && apt install -y nginx \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Adding our services to the S6 expected location
+COPY resources/docker/services.d /etc/services.d
+
+# Adding the S6 overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v1.22.1.0/s6-overlay-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
+
+# Copy the application files to run correct location
+COPY --chown=www-data:www-data . /var/www/html
+
+WORKDIR /var/www/html
+
+# Enable the site for Nginx
+ADD resources/docker/default.conf /etc/nginx/sites-enabled/default
+
+EXPOSE 80 443
+
+ENTRYPOINT ["/init"]
+```
+
+## Recommended Reading
+
+* **["Choosing an Init Process for Multi-process Containers"](https://ahmet.im/blog/minimal-init-process-for-containers/)** by Ahmet Alp Balkan
+
+* **["Run Multiple Processes in a Container"](https://docs.docker.com/config/containers/multi-service_container/)** by Runnable
+
+* **["Running systemd inside a Docker Container"](https://zauner.nllk.net/post/0038-running-systemd-inside-a-docker-container/)** by Christoph Zauner
