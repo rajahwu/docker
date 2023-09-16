@@ -190,3 +190,48 @@ CMD configures containers to run stuff...sort of.
 |ENTRYPOINT provided, CMD provided | FROM ubuntu COPY ./app ENTRYPOINT "/app/app.sh" CMD ["--argument"] | **/app/app.sh** is run through **bin/sh** or **cmd/S/C**. Arguments provided to it are are sent to **sh** and most likely disolved int the ether. |
 | ENTRYPOINT provided, CMD missing | FROM ubuntu COPY ./app ENTRYPOINT "/app/app.sh" | **/app/app.sh** is run through **/bin/sh** or **cmd/S/C**. Arguments provieded to it are sent to **sh** and most likely dissolved into the ether. |
 | ENTRYPOINT missing, CMD missing | FROM ubuntu COPY ./app | CMD or ENTRYPOINT is inherited form base image, or / **bin/sh** or **cmd/S/C** is used as default ENTRYPOINT.
+
+## Adding variables with **ENV** adn **ARG**
+
+ Build arguments and environment variables.
+
+ **ARG** allows us to set a variable at build time
+
+ ```dockerfile
+ # This is a testing image
+FROM ubuntu
+ARG curl_bin=curl
+COPY . /app
+RUN apt -y update && apt -y install "$curl_bin"
+CMD [ "--argument" ]
+ENTRYPOINT [ "/app/app.sh" ]
+ ```
+
+### You set **ARG** variables with **docker build** with teh **--build-arg** flag
+
+**docker build** won't fail if you forget to use **--build-arg,** but your build might break ...
+
+**ENV** configures environment variables for containers started from this image
+
+ ```dockerfile
+ # This is a testing image
+FROM ubuntu
+ENV curl_bin="curl=7.85.0"
+COPY . /app
+RUN apt -y update && apt -y install "$curl_bin"
+CMD [ "--argument" ]
+ENTRYPOINT [ "/app/app.sh" ]
+ ```
+
+Both **ENV** and **ARG** allow you to set defaults.
+
+**ENV** variables live with every container, **ARG** variable do not
+
+You set **ARGs** at built time: you *override* **ENVs** at run time
+
+Both **ENV** and **ARG** can only be expanded within **RUN** commmands
+
+**ENVs** and **ARGs** used by **RUN** commands *must* precede the **RUN** command that reference them
+
+## Other helpful Dockerfile commands
+
