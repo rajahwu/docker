@@ -18,8 +18,38 @@
 * Remember that **docker build** needs context and that layer order matters!
 * Consult the [Dockerfile reference](https://docs.docker.com/engine/reference/builder/) doc if you get stuck
 
+```bash
+docker run -e APP_USER=rajah --rm test-app --finish
+# Hello again, rajah! You've completed the challenge. Congrats, you rock!
+```
+
 ## Extra Credit
 
-* Go applications are completely self-contained and can rund without a root filesystem
+* Go applications are completely self-contained and can run without a root filesystem
 * Use a multi-stage build to create your image from scratch with nothing buty the /test-app file
 * This is a greate example of building small and highly secure Docker images!
+
+```dockerfile
+FROM golang:1.18 AS base
+WORKDIR /app
+COPY . /app
+RUN go build -o /test-app /app && chmod +x /test-app
+
+FROM scratch AS app
+COPY --from=base /test-app /test-app
+ENV APP_USER="whatever"
+ENTRYPOINT [ "/test-app" ]
+
+```
+
+```bash
+docker run -e APP_USER=rajah --rm test-app-2 --finish
+# Hello again, rajah! You've completed the challenge. Congrats, you rock!
+```
+
+```bash
+docker images test-app*
+# REPOSITORY   TAG       IMAGE ID       CREATED              SIZE
+# test-app     latest    7fd2aa893b96   9 minutes ago        967MB
+# test-app-2   latest    f6c1d8a792d2   About a minute ago   1.79MB
+```
