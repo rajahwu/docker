@@ -105,7 +105,7 @@ Use **COPY** instead of ADD wherever possible!
 
 RUN executes commands within temporary container.
 
-### Two Ways to Use **RUN**
+### Two Ways to Use **[RUN](https://docs.docker.com/engine/reference/run/)**
 
 |Form|Description|Example|
 |----|-----------|-------|
@@ -324,11 +324,11 @@ docker images my-image
 We could create two Dockerfiles and use the **builder pattern** to
     make our image slimmer and faster ...
 
-    ```bash
-    docker create --name get-date-text my-image && 
-    docker cp get-dat-text:/app/include/date.txt . &&
-    docker build -t my-smaller-image -f smaller.Dockerfile .
-    ```
+```bash
+docker create --name get-date-text my-image && 
+docker cp get-dat-text:/app/include/date.txt . &&
+docker build -t my-smaller-image -f smaller.Dockerfile .
+```
 
 ### **Bulider pattern** Disadvantages
 
@@ -479,4 +479,141 @@ CMD [ "--argument" ]
 # App size, in bytes: 876
 # App image size, in bytes: 13212058
 # Size difference: 15081x
+```
+
+## Multi-platform images
+
+Manifest lists allow images to work on multiple platforms!
+
+```bash
+uname -a
+Linux LAPTOP-490PTNDF 5.15.90.1-microsoft-standard-WSL2 #1 SMP Fri Jan 27 02:56:13 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+```
+
+```bash
+docker run --rm alpine uname -a
+Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+7264a8db6415: Already exists
+Digest: sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a
+Status: Downloaded newer image for alpine:latest
+Linux b0838b8c7472 5.15.90.1-microsoft-standard-WSL2 #1 SMP Fri Jan 27 02:56:13 UTC 2023 x86_64 Linux
+```
+
+```bash
+docker run --rm --platform linux/arm64  alpine uname -a
+Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+9fda8d8052c6: Pull complete
+Digest: sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a
+Status: Downloaded newer image for alpine:latest
+exec /bin/uname: exec format error
+```
+
+### **[qemu-user-static](https://github.com/dbhi/qus)**
+
+user emulation to run applications complied for other instruction sets.
+
+```bash
+# --privileded is dangerous, use with caution
+docker run --privileged --rm aptman/qus --static -- --path arm
+```
+
+#### The **--privileged** flag gives all capabilities to the container, and it also lifts all the limitations enforced by the device cgroup controller. In other words, the container can then do almost everything that the host can do
+
+### install QEMU
+
+```bash
+sudo apt -y install qemu qemu-system qemu-user-static binfmt-support
+```
+
+```bash
+# Unsuccessful install
+docker run --rm --platform linux/arm alpine uname
+Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+f8dec92eec42: Pull complete
+Digest: sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a
+Status: Downloaded newer image for alpine:latest
+exec /bin/uname: no such file or directory # <-
+# check sudo apt command, try to install qemu again
+```
+
+```bash
+😒😔🤯💥
+docker run --rm --platform linux/arm a
+lpine uname
+exec /bin/uname: no such file or directory
+```
+
+* *moving on*
+
+```bash
+docker build -t my-image:latest-86 --pull .
+# Removing intermediate container f8f6b03c0b2e
+#  ---> f8270c2a279e
+# Step 4/5 : ENTRYPOINT [ "/app/app.sh" ]
+#  ---> Running in 73e92de9dede
+# Removing intermediate container 73e92de9dede
+#  ---> c3ea3f68dcf0
+# Step 5/5 : CMD [ "--argument" ]
+#  ---> Running in 386e4e94a1d0
+# Removing intermediate container 386e4e94a1d0
+#  ---> 5b5cb2ba3ef0
+# Successfully built 5b5cb2ba3ef0
+# Successfully tagged my-image:latest-86
+```
+
+```bash
+🚫👷🏾🚫👷🏾
+docker build -t my-image:latest-arm --platform linux/arm --pull .
+# failed to fetch metadata: fork/exec /usr/local/lib/docker/cli-plugins/docker-buildx: no such file or directory
+
+# DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+#             Install the buildx component to build images with BuildKit:
+#             https://docs.docker.com/go/buildx/
+
+# Sending build context to Docker daemon  7.168kB
+# Step 1/5 : FROM ubuntu
+# latest: Pulling from library/ubuntu
+# d79cf5fbd02b: Pull complete
+# Digest: sha256:aabed3296a3d45cede1dc866a24476c4d7e093aa806263c27ddaadbdce3c1054
+# Status: Downloaded newer image for ubuntu:latest
+#  ---> 5edd8b11048d
+# Step 2/5 : COPY . /app
+#  ---> cb656bf3be7c
+# Step 3/5 : RUN apt -y update && apt -y install curl
+#  ---> [Warning] The requested image's platform (linux/arm/v7) does not match the detected host platform (linux/amd64/v4) and no specific platform was requested
+#  ---> Running in 8ffb299a736c
+# exec /bin/sh: no such file or directory
+# The command '/bin/sh -c apt -y update && apt -y install curl' returned a non-zero code: 1
+```
+
+```bash
+ docker run --rm my-image:latest
+```
+
+```bash
+===============================================
+
+     🎉 WELCOME TO THE DATE APP!!! 🎉
+
+===============================================
+INFO: Fetching date from the Internet. Hang on!
+
+
+🕰️  The date is: Sat Sep 16 17:49:58 UTC 2023
+
+⚙️  Here's what's running in your container:
+
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  1 17:49 ?        00:00:00 bash /app/app.sh --agrument
+root        15     1  0 17:49 ?        00:00:00 ps -ef
+
+
+We also got some arguments: --agrument
+
+
+
+⚙️  1 arguments were provided to this application.
 ```
