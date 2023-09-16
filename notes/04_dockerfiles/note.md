@@ -163,3 +163,30 @@ SOME VAR=$SOME VALUE_FROM_DOCKER;
 * App runs as the top-level process within the container (as PID 1)
 * **Any signals sent to the app are sent to your program**
 * **Arguments sent to containers will get passed into your program**
+
+## "Starting your app with **CMD**
+
+CMD configures containers to run stuff...sort of.
+
+### CMD's Behavior Depends On
+
+* Whether an **ENTRYPOINT** is provided or not
+* Whether **CMD** is written in shell or exec form
+
+#### ...Sort Of?
+
+|Scenario|Example|Result|
+|--------|-------------------|------|
+|ENTRYPOINT missing, CMD provided| FROM ubuntu COPY ./app CMD ["/app/app.sh"]|**/app/app.sh** is run as PID 1. Arguments provided to it are sent to **/app/app.sh** (remember, shell vs. exec form!).|
+|ENTRYPOINT provided, CMD provided |FROM ubuntu COPY ./app ENTRYPOINT ["/app/app.sh"] CMD ["--argument"]|**/app/app.sh** is run as PID 1. **--argument** is provided as argument to **/app/app.sh**. Additional arguments provied to it are sent to /app/app.sh|
+| ENTRYPOINT provided, CMD missing | FROM ubuntu COPY ./app ENTRYPOINT ["/app/app.sh] | **/app/app.sh** is run as PID 1. Additional arguments provided to it are sent to **/app/app.sh**.|
+|ENTRYPONIT missing, CMD missing|FROM ubuntu COPY ./app|CMD or ENTRYPOINT is inherited from base image, or /**bin/sh 0c** or **cmd/S/C** is used as default ENTRYPOINT|
+
+### What What about SHell Form
+
+| Scenario | Example | Result |
+|----------|---------|--------|
+|ENTRYPOINT missing, CMD provided | FROM ubuntu COPY ./app CMD "/app/app.sh" | **/app/app.sh** is run through **/bin/sh** or **cmd/S/C**. Arguments provided to it are sent to **sh** and most likely dissolved int the ether.|
+|ENTRYPOINT provided, CMD provided | FROM ubuntu COPY ./app ENTRYPOINT "/app/app.sh" CMD ["--argument"] | **/app/app.sh** is run through **bin/sh** or **cmd/S/C**. Arguments provided to it are are sent to **sh** and most likely disolved int the ether. |
+| ENTRYPOINT provided, CMD missing | FROM ubuntu COPY ./app ENTRYPOINT "/app/app.sh" | **/app/app.sh** is run through **/bin/sh** or **cmd/S/C**. Arguments provieded to it are sent to **sh** and most likely dissolved into the ether. |
+| ENTRYPOINT missing, CMD missing | FROM ubuntu COPY ./app | CMD or ENTRYPOINT is inherited form base image, or / **bin/sh** or **cmd/S/C** is used as default ENTRYPOINT.
